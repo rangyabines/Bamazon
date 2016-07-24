@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/rangyabines/Bamazon#readme",
   "dependencies": {
+    "console.table": "^0.7.0",
     "inquirer": "^1.1.2",
     "mysql": "^2.11.1"
   }

@@ -1,13 +1,14 @@
 //INITIALIZES THE NPM PACKAGES USED//
 var mysql = require('mysql');
 var inquirer = require('inquirer');
+var table = require('console.table');
 
 //INITIALIZES THE CONNECTION VARIABLE TO SYNC WITH A MYSQL DATABASE//
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root", //Your username//
-    password: "", //Your password//
+    password: "Driven@nz198!", //Your password//
     database: "Bamazon"
 })
 
@@ -22,18 +23,9 @@ connection.connect(function(err) {
 //FUNCTION TO GRAB THE PRODUCTS TABLE FROM THE DATABASE AND PRINT RESULTS TO CONSOLE//
 var makeTable = function() {
     //SELECTS ALL OF THE DATA FROM THE MYSQL PRODUCTS TABLE - SELECT COMMAND!
-    connection.query('SELECT * FROM products', function(err, res) {
+    connection.query('SELECT * FROM Products', function(err, res) {
         if (err) throw err;
-        //PRINTS THE TABLE TO THE CONSOLE WITH MINIMAL STYLING//
-        var tab = "\t";
-        console.log("ItemID\tProduct Name\tDepartment Name\tPrice\t# In Stock");
-        console.log("--------------------------------------------------------");
-        //FOR LOOP GOES THROUGH THE MYSQL TABLE AND PRINTS EACH INDIVIDUAL ROW ON A NEW LINE//
-        for (var i = 0; i < res.length; i++) {
-            console.log(res[i].ItemID + tab + res[i].ProductName + tab + res[i].DepartmentName + tab + res[i].Price + tab + res[i].StockQuantity);
-        }
-        console.log("--------------------------------------------------------");
-        //RUNS THE CUSTOMER'S PROMPTS AFTER CREATING THE TABLE. SENDS res SO THE promptCustomer FUNCTION IS ABLE TO SEARCH THROUGH THE DATA//
+        console.table(res);
         promptCustomer(res);
     });
 };
@@ -52,9 +44,33 @@ var promptCustomer = function(res) {
                 //LOOPS THROUGH THE MYSQL TABLE TO CHECK THAT THE PRODUCT THEY WANTED EXISTS//
                 for (var i = 0; i < res.length; i++) {                    	
 	                //1. TODO: IF THE PRODUCT EXISTS, SET correct = true and ASK THE USER TO SEE HOW MANY OF THE PRODUCT THEY WOULD LIKE TO BUY//
-	               	//2. TODO: CHECK TO SEE IF THE AMOUNT REQUESTED IS LESS THAN THE AMOUNT THAT IS AVAILABLE//                       
-	                //3. TODO: UPDATE THE MYSQL TO REDUCE THE StockQuanaity by the THE AMOUNT REQUESTED  - UPDATE COMMAND!
-	                //4. TODO: SHOW THE TABLE again by calling the function that makes the table
+                    if( val.choice == res[i].Product_Name){
+                        correct = true;
+
+                        console.log('Currently,' + res[i].Stock_Quantity + ' items are on stock.');
+
+                            inquirer.prompt([{
+                              type: 'input',
+                              name: 'choice2',
+                              message: 'How many product you like to buy?'
+                            }]).then(function(val2){
+                            //2. TODO: CHECK TO SEE IF THE AMOUNT REQUESTED IS LESS THAN THE AMOUNT THAT IS AVAILABLE// 
+                                if(val2.choice2 <= res[i].Stock_Quantity){
+                                  //3. TODO: UPDATE THE MYSQL TO REDUCE THE StockQuantity by the THE AMOUNT REQUESTED  - UPDATE COMMAND!
+                                  current = res[i].Stock_Quantity - val2.choice2;
+
+                                  //4. TODO: SHOW THE TABLE again by calling the function that makes the table
+                                  connection.query('UPDATE Products SET Stock_Quantity =' + current + 'WHERE Item_ID =' + res[i].Item_ID + '', function(err,res){
+                                        
+                                  });
+                                  makeTable();
+                                }
+                                else{
+                                  console.log('Please come back next time when stock is available.');
+                                  makeTable();
+                                }
+                            });
+                    }
                 }
 
                 //IF THE PRODUCT REQUESTED DOES NOT EXIST, RESTARTS PROMPT//
