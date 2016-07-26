@@ -8,7 +8,7 @@ var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root", //Your username//
-    password: "ENTER PASSWORD", //Your password//
+    password: "Driven@nz198!", //Your password//
     database: "Bamazon"
 })
 
@@ -31,7 +31,7 @@ var makeTable = function() {
 };
 
 //FUNCTION CONTAINING ALL CUSTOMER PROMPTS//
-var promptCustomer = function(res) {
+  function promptCustomer(res) {
         //PROMPTS USER FOR WHAT THEY WOULD LIKE TO PURCHASE//
         inquirer.prompt([{
             type: 'input',
@@ -49,33 +49,50 @@ var promptCustomer = function(res) {
 
                         console.log('Currently,' + res[i].Stock_Quantity + ' items are on stock.');
 
-                            inquirer.prompt([{
+                        askHowMany(res[i]);
+                        break;
+                      } 
+                    }
+                    if (correct == false) {
+                      promptCustomer(res);
+                    }
+                    
+                    })
+                       //IF THE PRODUCT REQUESTED DOES NOT EXIST, RESTARTS PROMPT//
+                
+            };
+
+                            function askHowMany(item){
+                              inquirer.prompt([{
                               type: 'input',
                               name: 'choice2',
                               message: 'How many product you like to buy?'
                             }]).then(function(val2){
+                              console.log(item)
                             //2. TODO: CHECK TO SEE IF THE AMOUNT REQUESTED IS LESS THAN THE AMOUNT THAT IS AVAILABLE// 
-                                if(val2.choice2 <= res[i].Stock_Quantity){
+                                if(val2.choice2 <= item.Stock_Quantity){
+
                                   //3. TODO: UPDATE THE MYSQL TO REDUCE THE StockQuantity by the THE AMOUNT REQUESTED  - UPDATE COMMAND!
-                                  current = res[i].Stock_Quantity - val2.choice2;
+                                  var current = item.Stock_Quantity - val2.choice2;
 
                                   //4. TODO: SHOW THE TABLE again by calling the function that makes the table
-                                  connection.query('UPDATE Products SET Stock_Quantity =' + current + 'WHERE Item_ID =' + res[i].Item_ID + '', function(err,res){
-                                        
+                                  var queryString = "UPDATE Products SET Stock_Quantity=" + current + " WHERE Item_ID=" + item.Item_ID + ";";
+                                  console.log(queryString);
+                                  connection.query(queryString, function(err,res){
+                                    if (err){
+                                      console.log(err)
+                                    }
+                                    makeTable();
                                   });
-                                  makeTable();
+                                  
                                 }
                                 else{
                                   console.log('Please come back next time when stock is available.');
                                   makeTable();
                                 }
                             });
-                    }
-                }
 
-                //IF THE PRODUCT REQUESTED DOES NOT EXIST, RESTARTS PROMPT//
-                if (i == res.length && correct == false) {
-                    promptCustomer(res);
-                }
-            });
-}
+                            }
+
+                            
+              
